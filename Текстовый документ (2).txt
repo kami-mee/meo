@@ -1,0 +1,59 @@
+pip install streamlit
+import streamlit as st
+import io
+from PIL import Image
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras import utils
+import matplotlib.pyplot as plt
+import pandas as pd
+model = Sequential()
+model.add(Dense(32, input_dim=10))
+model.add(Dense(5))
+model.add(Dense(1))
+
+model.summary()
+
+(x_train_org, y_train_org), (x_test_org, y_test_org) = mnist.load_data()
+x_train_org.shape
+
+x_train = x_train_org.reshape(x_train_org.shape[0], -1)
+x_test = x_test_org.reshape(x_test_org.shape[0], -1)
+
+CLASS_COUNT = 10
+
+y_train = utils.to_categorical(y_train_org, CLASS_COUNT)
+y_test = utils.to_categorical(y_test_org, CLASS_COUNT)
+model = Sequential()
+model.add(Dense(800, input_dim=784, activation='relu'))
+model.add(Dense(400, activation='relu'))
+model.add(Dense(CLASS_COUNT, activation='softmax'))
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+model.fit(x_train,
+          y_train,
+          batch_size=10000,
+          epochs=15,
+          verbose=1)
+
+from tensorflow.keras.preprocessing import image
+img = image.load_img('/content/Без имени.png', target_size=(28,28), color_mode="grayscale")
+arr_img = image.img_to_array(img)
+# Инверсия цветов (255 - текущее значение)
+inverted_img_array = 255 - arr_img
+
+normalized_img_array = inverted_img_array / 255.0
+
+reshaped_img_array = normalized_img_array.reshape(1, 784)
+prediction = model.predict(reshaped_img_array)
+st.title('Распознования числа на изображении')
+
+result = st.button('Распознать изображение')
+if result:
+  x = preprocess_image(img)
+  pred = np.argmax(prediction)
+  st.write('**Результаты распознавания:**')
+  st.write(pred)
+
+
